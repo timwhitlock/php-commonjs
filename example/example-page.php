@@ -10,9 +10,9 @@ define('MY_DEV_MODE', true );
  
 // If in dev mode, require and prep the commonjs compiler
 if( MY_DEV_MODE ){
-    require '../php/CommonJS.php';
+    require '../php/JSCompiler.php';
     // Pass module search paths to constructor (relative to php-commonjs root)
-    $Compiler = new CommonJS('js/modules:example/modules');
+    $Compiler = new JSCompiler('js/modules:example/modules');
     // Add your script[s] to the compiler
     $Compiler->add_script('./example-script');
     // Generate script tags to output to HTML (may be inline, or use remote scripts for better debugging)

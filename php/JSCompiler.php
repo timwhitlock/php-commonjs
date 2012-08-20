@@ -7,7 +7,7 @@
 /**
  * php-commonjs compiler class
  */
-class CommonJS {
+class JSCompiler {
     
     /**
      * @var JSCache
@@ -66,7 +66,7 @@ class CommonJS {
     /**
      * Add top-level script for compilation.
      * @param string js file path relative to PHP's current executing directory 
-     * @return CommonJS
+     * @return JSCompiler
      */
     public function add_script( $path ){
         $this->scripts[] = $path;
