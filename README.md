@@ -1,2 +1,2 @@
-This directory contains core commonjs packages
+PHP Common JS Framework and compiler
 
