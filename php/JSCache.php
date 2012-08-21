@@ -9,18 +9,38 @@ if( ! function_exists('apc_store') ){
 
 
 class JSCache {
-
+    
+    
+    /**
+     * abstraction of store
+     */
+    private function store( $key, $data ){
+        if( ! apc_store( $key, $data, 0 ) ){
+            throw new Exception('Failed to cache '.getype($data).' at '.var_export($key,1) );
+        }
+        return true;
+    }     
+    
+    
+    /**
+     * Abstraction of fetch
+     */
+    private function fetch( $key ){
+        $value = apc_fetch( $key, $ok );
+        if( ! $ok ){
+            //throw new Exception('oops');
+            return null;
+        }
+        return $value;
+    }     
 
 
     /**
      * 
      */
     public function cache_source( $hash, $src ){
-        if( ! $src ){
-            throw new Exception('Refusing to cache empty source '.var_export($src,1).' for '.var_export($hash,1) );
-        }
         $key = 'commonjs-source-'.$hash;
-        apc_store( $key, $src, 0 );
+        return $this->store( $key, $src );
     }
 
 
@@ -30,10 +50,7 @@ class JSCache {
      */
     public function fetch_source( $hash ){
         $key = 'commonjs-source-'.$hash;
-        $src = apc_fetch( $key, $ok );
-        if( ! $ok || ! $src ){
-            return null;
-        }
+        $src = $this->fetch($key) or $src = null;
         return $src;
     }        
     
@@ -46,7 +63,7 @@ class JSCache {
         // build a hash of hashes
         $hash = md5( implode('-', $hashes ) );
         $key  = 'commonjs-data-'.$hash;
-        apc_store( $key, $data, 0 );
+        return $this->store( $key, $data );
     }   
     
 
@@ -57,8 +74,8 @@ class JSCache {
     public function fetch_data( array $hashes ){
         $hash = md5( implode('-', $hashes ) );
         $key = 'commonjs-data-'.$hash;
-        $data = apc_fetch( $key, $ok );
-        if( ! $ok || ! is_array($data) ){
+        $data = $this->fetch($key);
+        if( ! is_array($data) ){
             return null;
         }
         foreach( $data as $datum ){
@@ -66,10 +83,9 @@ class JSCache {
             $deps[ $path ] = $mtime; // add self to timestamp checks
             // validate all dependencies
             foreach( $deps as $path => $mtime ){
-                if( ! file_exists($path) ){
-                    return null;
-                }
-                if( filemtime($path) > $mtime ){
+                if( ! file_exists($path) || filemtime($path) > $mtime ){
+                    // no longer valid
+                    apc_delete( $key );
                     return null;
                 }
             }
