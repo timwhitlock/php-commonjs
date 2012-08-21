@@ -1,8 +1,8 @@
 <?php
 /**
- * 
+ * JavaScript token definitions
+ * Most of this is not needed by php-commonjs - it was taken from another project
  */
- 
 define( 'J_FUNCTION', 1 );
 define( 'J_IDENTIFIER', 2 );
 define( 'J_VAR', 3 );

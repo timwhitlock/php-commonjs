@@ -1,6 +1,7 @@
 <?php
 /**
  * php-commonjs compiler class
+ * See ../example directory for usage
  */
 class JSCompiler {
     
@@ -26,13 +27,40 @@ class JSCompiler {
     */    
     private $cwd;
     
-    // queues for parsed and pending scripts during compilation
-    private $scripts = array();   
+    /**
+     * queue of top-level scripts added to application
+     * @var array
+     */
+    private $scripts  = array();   
+    
+    /**
+     * queue of unprocessed js files
+     * @var array
+     */ 
     private $pending  = array();
+    
+    /**
+     * Source code of processed js files
+     * @var array
+     */
     private $parsed   = array();
+    
+    /**
+     * Original source code paths indexed by hash
+     * @var array
+     */
     private $origins  = array();
+    
+    /**
+     * Source code file modification times indexed by hash
+     * @var array
+     */
     private $mtimes   = array();
-    private $types    = array();
+    
+    /**
+     * unsorted registry of all processed files' dependencies
+     * @var array
+     */
     private $dependencies = array();
     
     
@@ -78,7 +106,7 @@ class JSCompiler {
     
     /**
      * Compile and generate development mode script tags
-     * @param bool whether to fetch inline scripts or remote. inline scripts are harder to debug, but don't rely on the cache.
+     * @param bool whether to fetch inline scripts or remote. inline scripts are harder to debug
      * @return string
      */
     public function get_html( $inline = false ){
@@ -107,9 +135,8 @@ class JSCompiler {
         $scripts = array (
             '<script src="'.$virtpath.'/js/common.js"></script>'
         );
-        $key = $this->cache_key();
         foreach ( $data as $hash => $d ) {
-            $url = $virtpath.'/php/dev-script.php?name='.basename($d['path']).'&hash='.$hash.'&modified='.$d['mtime'];
+            $url = $virtpath.'/php/js.php?name='.basename($d['path']).'&hash='.$hash.'&modified='.$d['mtime'];
             $scripts[] = '<script src="'.htmlentities($url,ENT_COMPAT,'UTF-8').'"></script>';
         }
         return implode("\n",$scripts);
@@ -119,6 +146,7 @@ class JSCompiler {
 
     /**
      * Generate cache key for against top-level scripts
+     * @return string
      */
     private function cache_key(){     
         $hashes = array();
@@ -135,7 +163,8 @@ class JSCompiler {
     
     
     /**
-     * 
+     * Generate source code for all scripts and dependencies
+     * @return array compilation data suitable for various outputs
      */
     public function compile(){
         
@@ -173,11 +202,9 @@ class JSCompiler {
         $data = array();
         foreach( $deps as $hash ){
             $data[$hash] = array (
-                //'hash'  => $hash,
                 'path'  => $this->origins[$hash],
                 'mtime' => $this->mtimes[$hash],
                 'deps'  => isset($depcache[$hash]) ? $depcache[$hash] : array(),
-                //'type'  => isset($this->types[$hash]) ? $this->types[$hash] : 'script',
                 'js'    => $this->parsed[$hash],
             );
         }
@@ -193,7 +220,10 @@ class JSCompiler {
     
     
     /**
-     * 
+     * Generate a hash for a full file path and store original path with modified time
+     * @todo use human-readable when short enough
+     * @param string
+     * @return string
      */
     private function hash( $path ){
         $hash = md5($path);
@@ -256,7 +286,6 @@ class JSCompiler {
         // set as pending if not yet parsed
         if( ! isset($this->parsed[$hash]) ){
             $this->pending[$hash] = $parse;
-            $this->types[$hash] = $parse ? 'module' : 'lib';
         }
         // indicate that parent object is dependent on this one
         $this->dependencies[$parent][] = $hash;

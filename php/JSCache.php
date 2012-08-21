@@ -5,7 +5,8 @@
 class JSCache {
     
     /**
-     * 
+     * per-user cache base path
+     * @var string
      */
     private $base;     
     
@@ -49,7 +50,7 @@ class JSCache {
     
     
     /**
-     * Abstraction of read
+     * Abstraction of cache read
      * @param string cache key
      * @param bool whether data is scalar (source code cache)
      * @param int optionally check cached file isn't older than this
@@ -74,7 +75,9 @@ class JSCache {
     
     
     /**
-     * 
+     * Retrieve compiled JavaScript source from cache
+     * @param string cache key
+     * @return string
      */
     public function fetch_source( $name ){
         return $this->fetch( $name, true );
@@ -83,7 +86,9 @@ class JSCache {
 
 
     /**
-     * 
+     * Retrieve full data for a compiled commonjs application
+     * @param string cache key
+     * @return array
      */
     public function fetch_data( $name ){
         $data = $this->fetch( $name, false );
@@ -95,11 +100,12 @@ class JSCache {
             // validate and add source code cache
             $data[$hash]['js'] = $this->fetch( $hash, true );
             if( ! $data[$hash]['js'] ){
-                // source code missing
+                // source code missing from cache
                 return null;
             }
-            $deps[ $path ] = $mtime; // add self to timestamp checks
-            // validate all dependencies
+            // add self to checks below
+            $deps[ $path ] = $mtime;
+            // validate all dependencies and check source file is unmodified
             foreach( $deps as $path => $mtime ){
                 if( ! file_exists($path) || filemtime($path) > $mtime ){
                     // no longer valid
@@ -115,7 +121,10 @@ class JSCache {
     
     
     /**
-     * 
+     * Cache full data exported from compiler for a commonjs application
+     * @param string cache key
+     * @param array data returned from JSCompiler::compile
+     * @return void
      */
     public function cache_data( $name, array $data ){
         foreach( $data as $hash => $d ){
