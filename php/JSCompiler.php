@@ -80,9 +80,8 @@ class JSCompiler {
             }
             $this->search[] = $path;
         }
-        // always include our built-in modules and current directory
+        // always include our built-in modules
         $this->search[] = $this->base.'/js/modules';
-        $this->search[] = $this->cwd;
         // prepare cache
         if( ! class_exists('JSCache') ){
             require $this->base.'/php/JSCache.php';
@@ -168,7 +167,8 @@ class JSCompiler {
      */
     public function compile(){
         
-        $cachekey = $this->cache_key();
+        $this->cwd = getcwd();
+        $cachekey  = $this->cache_key();
 
         // Try to get from cache now we have hashes
         $data = $this->Cache->fetch_data( $cachekey );
@@ -255,14 +255,17 @@ class JSCompiler {
             }
             return $path;
         }
-        foreach( $this->search as $dir ){
+        // add current working directory to search paths
+        $search   = $this->search;
+        $search[] = $this->cwd;
+        foreach( $search as $dir ){
             $abspath = $dir.'/'.$path;
             if( file_exists($abspath) ){
                 // found
                 return $abspath;
             }
         }
-        throw new Exception('File not found, '.var_export($path,1).' in '.var_export(implode(':',$this->search),1) );
+        throw new Exception('File not found, '.var_export($path,1).' in '.var_export(implode(':',$search),1) );
     }     
 
 
