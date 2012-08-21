@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+<meta charset=utf-8 />
+<title></title>
+</head>
+<body>
+<h1>PHP Common JS framework and compiler</h1>
+
+<p>php-commonjs allows you to organise JavaScript into CommonJS style modules within PHP applications.</p>
+
+<p>It consists of two parts: <br />
+ 1. a runtime processor (development) <br />
+ 2. a compiler (deployment)</p>
+
+<p>The runtime processor allows you to debug your code much the same as you normally would. 
+It loads your modules as separate js files to aid debugging, and hardly touches your source code during development. </p>
+
+<p>The deploytime compiler reduces an entire 'application' to a single js file and compresses it with Google's Closure Compiler (included)</p>
+
+<h2>Example</h2>
+
+<p>One very simple example is included for now.  </p>
+
+<ul>
+<li><code>example/example-script.js</code> is a really simple application that calls in one module.  </li>
+<li><code>example/example-page.php</code> shows how to run this script during development.  </li>
+<li><code>example/example-build.sh</code> shows how to use the command line compiler for deployment.  </li>
+</ul>
+
+<h2>Built-in js modules</h2>
+
+<p>I haven't added any yet, but I may do. The focus of this project is the compiler, not a JavaScript library.</p>
+
+<h2>Notes and requirements</h2>
+
+<ul>
+<li>Framework agnostic.</li>
+<li>No particularly exotic PHP requirements. It's only been tested on PHP 5.3.5.</li>
+<li>No configuration files. </li>
+<li>Java is required to execute Google Closure. It's assumed to be at <code>/usr/bin/java</code>.</li>
+</ul>
+</body>
+</html>

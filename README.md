@@ -15,9 +15,10 @@ The deploytime compiler reduces an entire 'application' to a single js file and 
 ## Example
 
 One very simple example is included for now.  
-`example/example-script.js` is a really simple application that calls in one module. 
-`example/example-page.php` shows how to run this script during development. 
-`example/example-build.sh` shows how to use the command line compiler for deployment. 
+
+ * `example/example-script.js` is a really simple application that calls in one module.  
+ * `example/example-page.php` shows how to run this script during development.  
+ * `example/example-build.sh` shows how to use the command line compiler for deployment.  
 
 
 ## Built-in js modules
