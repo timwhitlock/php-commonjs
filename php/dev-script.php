@@ -30,17 +30,17 @@ function js_exit( $code = 0 ){
  * PHP errors will also exit as JavaScript 
  */ 
 function js_error( $type, $message, $file, $line, array $args ){
-    if( error_reporting() === 0 ){
-        return;
+    if( error_reporting() & $type ){
+        echo "throw new Error(",json_encode($message),");\n";
+        js_exit(1);
     }
-    echo "throw new Error(",json_encode($message),");\n";
-    js_exit(1);
 }
  
 ob_start();
 set_error_handler('js_error');
- 
- 
+error_reporting( E_ALL ^ E_NOTICE );
+
+
 try {
 
     require 'JSCache.php';
@@ -50,7 +50,8 @@ try {
     $src = $Cache->fetch_source( $hash );
     
     if( is_null($src) ){
-        throw new Exception('Failed to get cached source code from hash '.var_export($hash,1) );
+        $name = $_GET['name'] or $name = $hash;
+        throw new Exception('Failed to get cached source code for '.var_export($name,1) );
     }
     
     echo $src;

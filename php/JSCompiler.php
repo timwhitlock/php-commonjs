@@ -1,10 +1,5 @@
 <?php
 /**
- * 
- */
- 
- 
-/**
  * php-commonjs compiler class
  */
 class JSCompiler {
@@ -44,19 +39,25 @@ class JSCompiler {
     /**
      * @param string include paths to module directories
      */
-    public function __construct( $include_paths = 'modules' ){
-        $this->base = dirname(__FILE__);
-        $this->cwd  = $this->base.'/..';
-        $paths = is_array($include_paths) ? $include_paths : explode(':', $include_paths );
+    public function __construct( $search_paths = '' ){
+        $this->base = dirname(__FILE__).'/..';
+        $this->cwd  = getcwd();
+        $paths = is_array($search_paths) ? $search_paths : explode(':', $search_paths );
         foreach( $paths as $path ){
-            if( $path && $path{0} !== '/' ){
+            if( ! $path ){
+                continue;
+            }
+            if( $path{0} !== '/' ){
                 $path = $this->cwd.'/'.$path;
             }
             $this->search[] = $path;
         }
+        // always include our built-in modules and current directory
+        $this->search[] = $this->base.'/js/modules';
+        $this->search[] = $this->cwd;
         // prepare cache
         if( ! class_exists('JSCache') ){
-            require $this->base.'/JSCache.php';
+            require $this->base.'/php/JSCache.php';
         }
         $this->Cache = new JSCache;
     }
@@ -82,11 +83,11 @@ class JSCompiler {
      */
     public function get_html( $inline = false ){
         $data = $this->compile();
-        // generarte inline code if specified
+        // generate inline code if specified
         if( $inline ){
             $src = "<script>//<![CDATA[\n";
             // start with common.js helper
-            $src .= file_get_contents( $this->base.'/../js/common.js' );
+            $src .= file_get_contents( $this->base.'/js/common.js' );
             // add all processed source code
             foreach ( $data as $hash => $d ) {
                 $src .= "\n\n/* ".basename($d['path'])." */\n".$d['js'];
@@ -96,7 +97,7 @@ class JSCompiler {
         }
         // else generate remote scripts to break source code up
         // establish path to web service
-        $fullpath = realpath( $this->base.'/dev-script.php' );
+        $fullpath = realpath( $this->base.'/php/dev-script.php' );
         $basepath = realpath( $_SERVER['DOCUMENT_ROOT'] );
         $virtpath = str_replace( $basepath, '', $fullpath );
         if( ! $virtpath || $virtpath === $fullpath ){
@@ -123,7 +124,6 @@ class JSCompiler {
     public function compile(){
         
         // get hashes for top-level scripts
-        $this->cwd = getcwd();
         $hashes = array();
         foreach( $this->scripts as $i => $path ){
             $path = $this->scripts[$i] = $this->resolve_path( $path );
@@ -215,22 +215,14 @@ class JSCompiler {
             }
             return $path;
         }
-        // path may be relative to current working directory, using "." and ".."
-        if( '.' === $path{0} ){
-            $search = array( $this->cwd );
-        }        
-        // else search all include paths
-        else {
-            $search = $this->search;
-        }
-        foreach( $search as $dir ){
+        foreach( $this->search as $dir ){
             $abspath = $dir.'/'.$path;
             if( file_exists($abspath) ){
                 // found
                 return $abspath;
             }
         }
-        throw new Exception('File not found, '.var_export($path,1).' in '.var_export(implode(':',$search),1) );
+        throw new Exception('File not found, '.var_export($path,1).' in '.var_export(implode(':',$this->search),1) );
     }     
 
 
@@ -295,8 +287,8 @@ class JSCompiler {
         else {
             // lazy include of parser classes
             if( ! class_exists('JSTokenizer') ){
-                require $this->base.'/JSLex.php';
-                require $this->base.'/JSTokenizer.php';
+                require $this->base.'/php/JSLex.php';
+                require $this->base.'/php/JSTokenizer.php';
             }
             // Simple parsing using only a token stream
             // any string literal following sequence "require" J_WHITESPACE "(" J_WHITESPACE

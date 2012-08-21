@@ -11,18 +11,19 @@ define('MY_DEV_MODE', true );
 // If in dev mode, require and prep the commonjs compiler
 if( MY_DEV_MODE ){
     require '../php/JSCompiler.php';
-    // Pass module search paths to constructor (relative to php-commonjs root)
-    $Compiler = new JSCompiler('js/modules:example/modules');
+    // Pass module search paths to constructor
+    $Compiler = new JSCompiler('modules');
     // Add your script[s] to the compiler
-    $Compiler->add_script('./example-script');
-    // Generate script tags to output to HTML (may be inline, or use remote scripts for better debugging)
+    $Compiler->add_script('example-script');
+    // Generate dev script to output to HTML (may be inline, but remote scripts are better for debugging)
     $inline = false;
     $script = $Compiler->get_html( $inline );
     
 }
 // else if live mode, point to your compiled code, wherever you put it.
+// See ./example-build.sh for how this file was compiled
 else {
-    $script = '<script src="example-compiled.js" />';
+    $script = '<script src="example-compiled.js"></script>';
 }
  
   
