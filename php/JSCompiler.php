@@ -97,24 +97,40 @@ class JSCompiler {
         }
         // else generate remote scripts to break source code up
         // establish path to web service
-        $fullpath = realpath( $this->base.'/php/dev-script.php' );
+        $fullpath = realpath( $this->base );
         $basepath = realpath( $_SERVER['DOCUMENT_ROOT'] );
         $virtpath = str_replace( $basepath, '', $fullpath );
         if( ! $virtpath || $virtpath === $fullpath ){
             throw new Exception('Failed to map js.php to document root');
         }
-        // always start with common.js helper script
-        $helper = str_replace( 'php/dev-script.php','js/common.js', $virtpath );
         // generate <script> tags pointing to development web service
         $scripts = array (
-            '<script src="'.$helper.'"></script>'
+            '<script src="'.$virtpath.'/js/common.js"></script>'
         );
+        $key = $this->cache_key();
         foreach ( $data as $hash => $d ) {
-            $url = $virtpath.'?name='.basename($d['path']).'&hash='.$hash.'&modified='.$d['mtime'];
+            $url = $virtpath.'/php/dev-script.php?name='.basename($d['path']).'&hash='.$hash.'&modified='.$d['mtime'];
             $scripts[] = '<script src="'.htmlentities($url,ENT_COMPAT,'UTF-8').'"></script>';
         }
         return implode("\n",$scripts);
     }    
+
+
+
+    /**
+     * Generate cache key for against top-level scripts
+     */
+    private function cache_key(){     
+        $hashes = array();
+        foreach( $this->scripts as $i => $path ){
+            $path = $this->scripts[$i] = $this->resolve_path( $path );
+            $hashes[] = $this->hash( $path );
+        }
+        if( ! $hashes ){
+            throw new Exception('Cannot make cache key without scripts');
+        }
+        return md5( implode($hashes) );
+    }
     
     
     
@@ -123,15 +139,10 @@ class JSCompiler {
      */
     public function compile(){
         
-        // get hashes for top-level scripts
-        $hashes = array();
-        foreach( $this->scripts as $i => $path ){
-            $path = $this->scripts[$i] = $this->resolve_path( $path );
-            $hashes[] = $this->hash( $path );
-        }
+        $cachekey = $this->cache_key();
 
         // Try to get from cache now we have hashes
-        $data = $this->Cache->fetch_data( $hashes );
+        $data = $this->Cache->fetch_data( $cachekey );
         if( $data ){
             return $data;
         }
@@ -162,18 +173,17 @@ class JSCompiler {
         $data = array();
         foreach( $deps as $hash ){
             $data[$hash] = array (
-                'hash'  => $hash,
+                //'hash'  => $hash,
                 'path'  => $this->origins[$hash],
                 'mtime' => $this->mtimes[$hash],
                 'deps'  => isset($depcache[$hash]) ? $depcache[$hash] : array(),
-                'type'  => isset($this->types[$hash]) ? $this->types[$hash] : 'script',
+                //'type'  => isset($this->types[$hash]) ? $this->types[$hash] : 'script',
                 'js'    => $this->parsed[$hash],
             );
-            $this->Cache->cache_source( $hash, $data[$hash]['js'] );
         }
         
         // cache whole top-level page script
-        $this->Cache->cache_data( $hashes, $data );
+        $this->Cache->cache_data( $cachekey, $data );
         
         return $data;
     }    

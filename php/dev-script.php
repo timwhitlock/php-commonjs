@@ -46,11 +46,11 @@ try {
     require 'JSCache.php';
     $Cache = new JSCache;
     
-    $hash = $_GET['hash'];
+    extract( $_GET );
     $src = $Cache->fetch_source( $hash );
     
     if( is_null($src) ){
-        $name = $_GET['name'] or $name = $hash;
+        $name or $name = $hash;
         throw new Exception('Failed to get cached source code for '.var_export($name,1) );
     }
     
