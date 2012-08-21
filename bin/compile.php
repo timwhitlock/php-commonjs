@@ -10,8 +10,8 @@ require $base.'/php/Cli.php';
 require $base.'/php/JSCompiler.php';
 
 Cli::init();
-Cli::register_arg('c', 'compile', 'Script paths to compile', true );
-Cli::register_arg('s', 'search',  'Search paths for js modules', false );
+Cli::register_arg('c', 'compile', 'Script paths to compile; delimit with ":"', true );
+Cli::register_arg('s', 'search',  'Search paths for js modules; delimit with ":"', false );
 Cli::register_arg('h', 'help',    'Show this help text', false );
 Cli::validate_args(); 
 
