@@ -20,7 +20,7 @@ class JSCache {
         // separate cache per user to avoid file permission errors
         $user = $user = $_SERVER['USER'] or $user = trim(`whoami`) or $user = get_current_user();
         // ensure base directory exists and is writeable
-        $this->base = $temp.'/php-commonjs/'.$user;
+        $this->base = $temp.'/php-commonjs-'.trim( preg_replace('/[\W_]+/','-',strtolower($user) ), '-' );
         if( ! is_dir($this->base) ){
             mkdir( $this->base, 0755, true );
         }
