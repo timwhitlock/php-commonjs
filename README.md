@@ -48,6 +48,6 @@ I haven't added any yet, but I may do. The focus of this project is the compiler
 
 ## Gotchas
 
- * Watch out for `open_basedir` restrictions; `realpath` resoves aliases.
+ * Watch out for `open_basedir` restrictions; `realpath` resolves aliases/symlinks.
  * Point your php cli at a suitable .ini file - it may differ from your web server.
  * Always add a "--" separator before any php command line arguments
