@@ -2,7 +2,7 @@
 
 ###php-commonjs allows you to organise JavaScript into CommonJS style modules within PHP applications.
 
-That means you can do things like: `require('some/module').doStuff()` without any extra async loading of scripts at runtime. 
+That means you can do things like: `require('some/module').doStuff()` without any on-demand script loading. 
 Then you can compile it all into a single compressed .js file for deploying to your server or CDN.
 
 
@@ -13,7 +13,7 @@ It consists of two parts:
 The runtime processor allows you to debug your code much the same as you normally would. 
 It loads your modules as separate js files to aid debugging, and hardly touches your source code during development. 
 
-The deploytime compiler reduces an entire 'application' to a single js file and compresses it with Google's Closure Compiler (included)
+The deploytime compiler reduces an entire 'application' to a single .js file and compresses it with Google's Closure Compiler (included)
 
 
 ## Example
@@ -25,7 +25,7 @@ One very simple example is included for now.
  * `example/example-build.sh` shows how to use the command line compiler for deployment.  
 
 
-## Built-in js modules
+## Built-in .js modules
 
 I haven't added any yet, but I may do. The focus of this project is the compiler, not a JavaScript library.
 
@@ -33,6 +33,14 @@ I haven't added any yet, but I may do. The focus of this project is the compiler
 ## Notes and requirements
 
  * Framework agnostic.
- * No particularly exotic PHP requirements. It's only been tested on PHP 5.3.5.
  * No configuration files. 
- * Java is required to execute Google Closure. It's assumed to be at `/usr/bin/java`.
+ * No exotic PHP requirements; just JSON extension and CLI SAPI.
+ * Only tested on PHP 5.3.5 so far - but it's not fancy.
+ * Java is required to execute Google Closure Compiler; assumed to be at `/usr/bin/java`.
+
+
+## Todo
+
+ * Bundle in some common JS utilities - maybe.
+ * Support Google Clousre remote API for users without Java.
+ * Improve caching - curently any dependency change recompiles everything.

@@ -9,7 +9,7 @@
 
 <h3>php-commonjs allows you to organise JavaScript into CommonJS style modules within PHP applications.</h3>
 
-<p>That means you can do things like: <code>require('some/module').doStuff()</code> without any extra async loading of scripts at runtime. 
+<p>That means you can do things like: <code>require('some/module').doStuff()</code> without any on-demand script loading. 
 Then you can compile it all into a single compressed .js file for deploying to your server or CDN.</p>
 
 <p>It consists of two parts: <br />
@@ -19,7 +19,7 @@ Then you can compile it all into a single compressed .js file for deploying to y
 <p>The runtime processor allows you to debug your code much the same as you normally would. 
 It loads your modules as separate js files to aid debugging, and hardly touches your source code during development. </p>
 
-<p>The deploytime compiler reduces an entire 'application' to a single js file and compresses it with Google's Closure Compiler (included)</p>
+<p>The deploytime compiler reduces an entire 'application' to a single .js file and compresses it with Google's Closure Compiler (included)</p>
 
 <h2>Example</h2>
 
@@ -31,7 +31,7 @@ It loads your modules as separate js files to aid debugging, and hardly touches 
 <li><code>example/example-build.sh</code> shows how to use the command line compiler for deployment.  </li>
 </ul>
 
-<h2>Built-in js modules</h2>
+<h2>Built-in .js modules</h2>
 
 <p>I haven't added any yet, but I may do. The focus of this project is the compiler, not a JavaScript library.</p>
 
@@ -39,9 +39,18 @@ It loads your modules as separate js files to aid debugging, and hardly touches 
 
 <ul>
 <li>Framework agnostic.</li>
-<li>No particularly exotic PHP requirements. It's only been tested on PHP 5.3.5.</li>
 <li>No configuration files. </li>
-<li>Java is required to execute Google Closure. It's assumed to be at <code>/usr/bin/java</code>.</li>
+<li>No exotic PHP requirements; just JSON extension and CLI SAPI.</li>
+<li>Only tested on PHP 5.3.5 so far - but it's not fancy.</li>
+<li>Java is required to execute Google Closure Compiler; assumed to be at <code>/usr/bin/java</code>.</li>
+</ul>
+
+<h2>Todo</h2>
+
+<ul>
+<li>Bundle in some common JS utilities - maybe.</li>
+<li>Support Google Clousre remote API for users without Java.</li>
+<li>Improve caching - curently any dependency change recompiles everything.</li>
 </ul>
 </body>
 </html>

@@ -52,6 +52,12 @@ class JSCompiler {
     private $origins  = array();
     
     /**
+     * Index of hashes for short, numberic slugs
+     * @var array
+     */
+    private $hashes = array();
+    
+    /**
      * Source code file modification times indexed by hash
      * @var array
      */
@@ -229,6 +235,9 @@ class JSCompiler {
         $hash = md5($path);
         $this->origins[$hash] = $path;
         $this->mtimes[$hash]  = filemtime($path);
+        if( ! isset($this->hashes[$hash]) ){
+            $this->hashes[$hash] = count($this->hashes);
+        }
         return $hash;
     }
     
@@ -346,7 +355,8 @@ class JSCompiler {
                     if( $t === J_STRING_LITERAL && false !== strpos($req,'(') ){
                         $arg = trim( $s, "'" );
                         $modhash = $this->register_dependency( $arg, $hash );
-                        $s = 'CommonJS.'.$req."'$".$modhash."','".$arg."'";
+                        $id = '$'.$this->hashes[$modhash];
+                        $s = 'CommonJS.'.$req.json_encode($id).",'".$arg."'";
                         unset($req);
                     }
                     // ensure it's a valid "require (" sequence
@@ -372,7 +382,8 @@ class JSCompiler {
         if( isset($this->pending[$hash]) ){
             unset( $this->pending[$hash] );
             // wrap module code in CommonJS exporter
-            $js = "CommonJS.register(".json_encode('$'.$hash).", ".json_encode(basename($path)).", function(exports){\n".$js."\nreturn exports;\n}({}) );\n";
+            $id = '$'.$this->hashes[$hash];
+            $js = "CommonJS.register(".json_encode($id).", ".json_encode(basename($path)).", function(exports){\n".$js."\nreturn exports;\n}({}) );\n";
         }
         // save source
         $this->parsed[$hash] = $js;
