@@ -1,3 +1,3 @@
-// Compiled Wed, 22 Aug 2012 10:43:39 GMT with php-commonjs 
-(function(f,b){var a,d={};a={register:function(c,a){d[c]=a},require:function(c,a){var b=d[c];if(!b)throw Error('CommonJS error: failed to require("'+a+'")');return b}};a.register("$2",function(a){a.something=function(){return 1};a.nothing=function(){return 0};return a}({}));a.register("$1",function(c){c.hello=function(){var a=b.createElement("h2");a.appendChild(b.createTextNode("Hello World. It's working!"));b.body.appendChild(a)};a.require("$2","example-module.js");return c}({}));var e=a.require("$1",
-"example-script.js"),e=a.require("$1","example-script.js");e.hello()})(window,document);
+// Compiled Wed, 22 Aug 2012 11:49:11 GMT with php-commonjs 
+(function(f,b){var a,d={};a={register:function(c,a){d[c]=a},require:function(c,a){var b=d[c];if(!b)throw Error('CommonJS error: failed to require("'+a+'")');return b}};a.register("$2",function(a){a.something=function(){return 1};a.nothing=function(){return 0};return a}({}));a.register("$1",function(c){c.hello=function(){var a=b.createElement("h2");a.appendChild(b.createTextNode("Hello World. It's working!"));b.body.appendChild(a)};a.require("$2","another-module.js");return c}({}));var e=a.require("$1",
+"example-module.js"),e=a.require("$1","example-module.js");e.hello()})(window,document);
