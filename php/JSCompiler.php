@@ -373,7 +373,7 @@ class JSCompiler {
                         $modhash = $this->register_dependency( $arg, $hash );
                         // alter require statement to use our internal ID - adding js file for debugging
                         $id = json_encode('$'.$this->hashes[$modhash] );
-                        $fn = json_encode( basename( $this->origins[$hash] ) );
+                        $fn = json_encode( basename( $this->origins[$modhash] ) );
                         $s  = 'CommonJS.'.$req.$id.",".$fn;
                         unset($req);
                     }
