@@ -35,7 +35,7 @@ It loads your modules as separate js files to aid debugging, and hardly touches 
 
 <p>I haven't added any yet, but I may do. The focus of this project is the compiler, not a JavaScript library.</p>
 
-<h2>Notes and requirements</h2>
+<h2>Requirements</h2>
 
 <ul>
 <li>Framework agnostic.</li>
@@ -43,15 +43,22 @@ It loads your modules as separate js files to aid debugging, and hardly touches 
 <li>No exotic PHP requirements; just JSON extension and CLI SAPI.</li>
 <li>Only tested on PHP 5.3.5 so far - but it's not fancy.</li>
 <li>Java is required to execute Google Closure Compiler; assumed to be at <code>/usr/bin/java</code>.</li>
-<li>Watch out for <code>open_basedir</code> restrictions; <code>realpath</code> resoves aliases.</li>
 </ul>
 
 <h2>Todo</h2>
 
 <ul>
 <li>Bundle in some common JS utilities - maybe.</li>
-<li>Support Google Clousre remote API for users without Java.</li>
+<li>Support Google Closure remote API for users without Java.</li>
 <li>Improve caching - curently any dependency change recompiles everything.</li>
+</ul>
+
+<h2>Gotchas</h2>
+
+<ul>
+<li>Watch out for <code>open_basedir</code> restrictions; <code>realpath</code> resoves aliases.</li>
+<li>Point your php cli at a suitable .ini file - it may differ from your web server.</li>
+<li>Always add a "--" separator before any php command line arguments</li>
 </ul>
 </body>
 </html>

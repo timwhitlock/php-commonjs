@@ -30,20 +30,24 @@ One very simple example is included for now.
 I haven't added any yet, but I may do. The focus of this project is the compiler, not a JavaScript library.
 
 
-## Notes and requirements
+## Requirements
 
  * Framework agnostic.
  * No configuration files. 
  * No exotic PHP requirements; just JSON extension and CLI SAPI.
  * Only tested on PHP 5.3.5 so far - but it's not fancy.
  * Java is required to execute Google Closure Compiler; assumed to be at `/usr/bin/java`.
- * Watch out for `open_basedir` restrictions; `realpath` resoves aliases.
 
 
 ## Todo
 
  * Bundle in some common JS utilities - maybe.
- * Support Google Clousre remote API for users without Java.
+ * Support Google Closure remote API for users without Java.
  * Improve caching - curently any dependency change recompiles everything.
  
 
+## Gotchas
+
+ * Watch out for `open_basedir` restrictions; `realpath` resoves aliases.
+ * Point your php cli at a suitable .ini file - it may differ from your web server.
+ * Always add a "--" separator before any php command line arguments

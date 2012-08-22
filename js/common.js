@@ -2,11 +2,11 @@
  * CommonJS runtime helper.
  */ 
 var CommonJS = function(){
-    // internal registry of modules indexed by hash of original file name */
+    // internal registry of modules indexed by uniqiue internal ID */
     var modules = {};
-    // expose public CommonJS object - should be global
+    // expose public CommonJS object into scope
     return {
-        // called by registering module
+        // called by self-registering module
         register: function ( hash, mod ){
             modules[hash] = mod;
         },
