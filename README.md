@@ -1,10 +1,14 @@
-#PHP Common JS framework and compiler
+#PHP CommonJS runtime and compiler
 
-php-commonjs allows you to organise JavaScript into CommonJS style modules within PHP applications.
+###php-commonjs allows you to organise JavaScript into CommonJS style modules within PHP applications.
+
+That means you can do things like: `require('some/module').doStuff()` without any extra async loading of scripts at runtime. 
+Then you can compile it all into a single compressed .js file for deploying to your server or CDN.
+
 
 It consists of two parts:  
- 1. a runtime processor (development)  
- 2. a compiler (deployment)
+ 1. a runtime processor (dev)  
+ 2. a compiler (live)
 
 The runtime processor allows you to debug your code much the same as you normally would. 
 It loads your modules as separate js files to aid debugging, and hardly touches your source code during development. 

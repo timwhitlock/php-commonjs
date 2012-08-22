@@ -15,3 +15,10 @@ exports.hello = function(){
     el.appendChild( document.createTextNode(greeting) );
     document.body.appendChild( el );
 }
+
+
+/**
+ * You can require further modules and ythe compiler will sort the dependency order
+ */
+var another = require('another-module');
+
