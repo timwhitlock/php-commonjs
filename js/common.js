@@ -7,7 +7,7 @@ var CommonJS = function(){
     // expose public CommonJS object - should be global
     return {
         // called by registering module
-        register: function ( hash, filename, mod ){
+        register: function ( hash, mod ){
             modules[hash] = mod;
         },
         // called to access module's export object

@@ -74,8 +74,11 @@ class JSCompiler {
      * @param string include paths to module directories
      */
     public function __construct( $search_paths = '' ){
-        $this->base = dirname(__FILE__).'/..';
-        $this->cwd  = getcwd();
+        $this->base = realpath( dirname(__FILE__).'/..' );
+        $this->cwd  = realpath( getcwd() );
+        if( ! $this->base || ! $this->cwd ){
+            throw new Exception('Problem resolving realpaths');
+        }
         $paths = is_array($search_paths) ? $search_paths : explode(':', $search_paths );
         foreach( $paths as $path ){
             if( ! $path ){
@@ -95,6 +98,13 @@ class JSCompiler {
         $this->Cache = new JSCache;
     }
     
+    
+    /**
+     * Disable cache for debugging purposes
+     */
+    public function disable_cache(){
+        $this->Cache = null;
+    }    
     
     
     /**
@@ -128,12 +138,15 @@ class JSCompiler {
             $src.= "\n//]]></script>\n";
             return $src;
         }
+        // cache is required for remote scripts
+        if( ! $this->Cache ){
+            throw new Exception('Specify inline scripts if you disable the cache');
+        }
         // else generate remote scripts to break source code up
         // establish path to web service
-        $fullpath = realpath( $this->base );
         $basepath = realpath( $_SERVER['DOCUMENT_ROOT'] );
-        $virtpath = str_replace( $basepath, '', $fullpath );
-        if( ! $virtpath || $virtpath === $fullpath ){
+        $virtpath = str_replace( $basepath, '', $this->base );
+        if( ! $virtpath || $virtpath === $this->base ){
             throw new Exception('Failed to map js.php to document root');
         }
         // generate <script> tags pointing to development web service
@@ -174,12 +187,14 @@ class JSCompiler {
     public function compile(){
         
         $this->cwd = getcwd();
-        $cachekey  = $this->cache_key();
 
         // Try to get from cache now we have hashes
-        $data = $this->Cache->fetch_data( $cachekey );
-        if( $data ){
-            return $data;
+        if( $this->Cache ){
+            $cachekey  = $this->cache_key();
+            $data = $this->Cache->fetch_data( $cachekey );
+            if( $data ){
+                return $data;
+            }
         }
         
         // process scripts and then all dependencies
@@ -216,7 +231,9 @@ class JSCompiler {
         }
         
         // cache whole top-level page script
-        $this->Cache->cache_data( $cachekey, $data );
+        if( $this->Cache ){
+            $this->Cache->cache_data( $cachekey, $data );
+        }
         
         return $data;
     }    
@@ -227,15 +244,14 @@ class JSCompiler {
     
     /**
      * Generate a hash for a full file path and store original path with modified time
-     * @todo use human-readable when short enough
-     * @param string
-     * @return string
+     * @param string absolute and already resoved file path
+     * @return string unique hash to use against this file in caches
      */
     private function hash( $path ){
         $hash = md5($path);
         $this->origins[$hash] = $path;
-        $this->mtimes[$hash]  = filemtime($path);
         if( ! isset($this->hashes[$hash]) ){
+            $this->mtimes[$hash]  = filemtime($path);
             $this->hashes[$hash] = count($this->hashes);
         }
         return $hash;
@@ -259,18 +275,18 @@ class JSCompiler {
         }
         // path may be absolute, but must still exist
         if( '/' === $path{0} ){
-            if( ! file_exists($path) ){
+            $abspath = realpath($path);
+            if( ! $abspath ){
                 throw new Exception('File not found, '.var_export($path,1) );
             }
-            return $path;
+            return $abspath;
         }
         // add current working directory to search paths
         $search   = $this->search;
         $search[] = $this->cwd;
         foreach( $search as $dir ){
-            $abspath = $dir.'/'.$path;
-            if( file_exists($abspath) ){
-                // found
+            $abspath = realpath( $dir.'/'.$path );
+            if( $abspath && file_exists($abspath) ){
                 return $abspath;
             }
         }
@@ -355,8 +371,10 @@ class JSCompiler {
                     if( $t === J_STRING_LITERAL && false !== strpos($req,'(') ){
                         $arg = trim( $s, "'" );
                         $modhash = $this->register_dependency( $arg, $hash );
-                        $id = '$'.$this->hashes[$modhash];
-                        $s = 'CommonJS.'.$req.json_encode($id).",'".$arg."'";
+                        // alter require statement to use our internal ID - adding js file for debugging
+                        $id = json_encode('$'.$this->hashes[$modhash] );
+                        $fn = json_encode( basename( $this->origins[$hash] ) );
+                        $s  = 'CommonJS.'.$req.$id.",".$fn;
                         unset($req);
                     }
                     // ensure it's a valid "require (" sequence
@@ -381,9 +399,9 @@ class JSCompiler {
         // May be parsing a pending module
         if( isset($this->pending[$hash]) ){
             unset( $this->pending[$hash] );
-            // wrap module code in CommonJS exporter
-            $id = '$'.$this->hashes[$hash];
-            $js = "CommonJS.register(".json_encode($id).", ".json_encode(basename($path)).", function(exports){\n".$js."\nreturn exports;\n}({}) );\n";
+            // wrap module code in CommonJS exporter using internal ID
+            $id = json_encode('$'.$this->hashes[$hash]);
+            $js = "CommonJS.register(".$id.", function(exports){\n".$js."\nreturn exports;\n}({}) );\n";
         }
         // save source
         $this->parsed[$hash] = $js;

@@ -2,7 +2,7 @@
 
 ###php-commonjs allows you to organise JavaScript into CommonJS style modules within PHP applications.
 
-That means you can do things like: `require('some/module').doStuff()` without any on-demand script loading. 
+That means you can do things like: `require('widget').stuff()` without any on-demand script loading. 
 Then you can compile it all into a single compressed .js file for deploying to your server or CDN.
 
 
@@ -37,6 +37,7 @@ I haven't added any yet, but I may do. The focus of this project is the compiler
  * No exotic PHP requirements; just JSON extension and CLI SAPI.
  * Only tested on PHP 5.3.5 so far - but it's not fancy.
  * Java is required to execute Google Closure Compiler; assumed to be at `/usr/bin/java`.
+ * Watch out for `open_basedir` restrictions; `realpath` resoves aliases.
 
 
 ## Todo
@@ -44,3 +45,5 @@ I haven't added any yet, but I may do. The focus of this project is the compiler
  * Bundle in some common JS utilities - maybe.
  * Support Google Clousre remote API for users without Java.
  * Improve caching - curently any dependency change recompiles everything.
+ 
+
