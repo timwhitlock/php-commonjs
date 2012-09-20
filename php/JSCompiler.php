@@ -31,7 +31,13 @@ class JSCompiler {
      * queue of top-level scripts added to application
      * @var array
      */
-    private $scripts  = array();   
+    private $scripts  = array(); 
+    
+    /**
+     * list of regular libraries to prepend common js code, e.g. jQuery
+     * @var array
+     */
+    private $libs = array();    
     
     /**
      * queue of unprocessed js files
@@ -120,21 +126,60 @@ class JSCompiler {
     
     
     /**
+     * Add a standard already compressed library to prepend scripts
+     * @todo support remote libraries
+     * @param string js file path relative to PHP's current executing directory 
+     * @return JSCompiler
+     */
+    public function add_library( $path ){
+        $path = $this->resolve_path( $path );
+        $hash = $this->hash( $path );
+        $this->libs[$hash] = $path;
+        $this->parsed[$hash] = file_get_contents($path);
+        return $this;
+    }
+
+
+
+    
+    /**
+     * Compile full, concatenated source code
+     * @return string
+     */
+    public function to_source(){
+        $src = '';
+        $data = $this->compile();
+        // uncompiled libraries
+        foreach( $this->libs as $hash => $path ){
+            $src .= $data[$hash]['js']."\n\n";
+            unset( $data[$hash] );
+        }
+        // add sandboxing wrapper around compiled code only
+        $src .= "( function( window, document, undefined ){\n";
+        // add common.js helper
+        $src .= file_get_contents( $this->base.'/js/common.js' );
+        // add all processed source code
+        foreach ( $data as $hash => $d ) {
+            $src .= "\n\n/* ".basename($d['path'])." */\n".$d['js'];
+        }
+        // end sandbox and done
+        $src .= "\n} )( window, document );\n";
+        return $src;
+    }
+
+    
+    
+    
+    /**
      * Compile and generate development mode script tags
      * @param bool whether to fetch inline scripts or remote. inline scripts are harder to debug
      * @return string
      */
     public function get_html( $inline = false ){
-        $data = $this->compile();
         // generate inline code if specified
         if( $inline ){
             $src = "<script>//<![CDATA[\n";
-            // start with common.js helper
-            $src .= file_get_contents( $this->base.'/js/common.js' );
-            // add all processed source code
-            foreach ( $data as $hash => $d ) {
-                $src .= "\n\n/* ".basename($d['path'])." */\n".$d['js'];
-            }
+            $src.= $this->to_source();
             $src.= "\n//]]></script>\n";
             return $src;
         }
@@ -142,19 +187,22 @@ class JSCompiler {
         if( ! $this->Cache ){
             throw new Exception('Specify inline scripts if you disable the cache');
         }
+        $data = $this->compile();
         // else generate remote scripts to break source code up
-        // establish path to web service
-        $basepath = realpath( $_SERVER['DOCUMENT_ROOT'] );
-        $virtpath = str_replace( $basepath, '', $this->base );
-        if( ! $virtpath || $virtpath === $this->base ){
-            throw new Exception('Failed to map js.php to document root');
+        $scripts = array();
+        // uncompiled libraries
+        foreach( $this->libs as $hash => $path ){
+            $url = $this->resolve_virtual($path);
+            $scripts[] = '<script src="'.$url.'"></script>';
+            unset( $data[$hash] );
         }
+        // add common js helper
+        $url = $this->resolve_virtual( $this->base.'/js/common.js' );
+        $scripts[] = '<script src="'.$url.'"></script>';
         // generate <script> tags pointing to development web service
-        $scripts = array (
-            '<script src="'.$virtpath.'/js/common.js"></script>'
-        );
+        $php = $this->resolve_virtual( $this->base.'/php/js.php' );
         foreach ( $data as $hash => $d ) {
-            $url = $virtpath.'/php/js.php?name='.basename($d['path']).'&hash='.$hash.'&modified='.$d['mtime'];
+            $url = $php.'?name='.basename($d['path']).'&hash='.$hash.'&modified='.$d['mtime'];
             $scripts[] = '<script src="'.htmlentities($url,ENT_COMPAT,'UTF-8').'"></script>';
         }
         return implode("\n",$scripts);
@@ -257,6 +305,22 @@ class JSCompiler {
         return $hash;
     }
     
+    
+    
+    /**
+     * Resolve a local path toa virtual one
+     */
+    private function resolve_virtual( $path ){
+        static $basepath;
+        if( ! isset($basepath) ){
+            $basepath = realpath( $_SERVER['DOCUMENT_ROOT'] );
+        }
+        $virtpath = str_replace( $basepath, '', $path );
+        if( ! $virtpath || $virtpath === $path ){
+            throw new Exception('Failed to map path  to document root, '.$path);
+        }    
+        return $virtpath;
+    }
 
     
     
@@ -327,6 +391,10 @@ class JSCompiler {
      * @return array hashes in dependency loading order
      */
     private function _sort_dependencies( $hash, array &$deps ){
+        // prepend dependencies with standard uncompiled libraries
+        if( ! $deps ){
+            $deps = array_keys($this->libs);
+        }
         while( isset($this->dependencies[$hash]) && $dep = array_shift($this->dependencies[$hash]) ){
             $this->_sort_dependencies( $dep, $deps );
         }

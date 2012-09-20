@@ -12,6 +12,7 @@ require $base.'/php/JSCompiler.php';
 Cli::init();
 Cli::register_arg('c', 'compile', 'Script paths to compile; delimit with ":"', true );
 Cli::register_arg('s', 'search',  'Search paths for js modules; delimit with ":"', false );
+Cli::register_arg('l', 'libs',    'Regular javascript libs to prepend to commonjs code', false );
 Cli::register_arg('n', '',        'Disables compression for debugging', false );
 Cli::register_arg('d', '',        'Disables cache for debugging', false );
 Cli::register_arg('h', 'help',    'Show this help text', false );
@@ -30,19 +31,17 @@ try {
     }
     
     // add scripts passed
-    foreach( explode(':', Cli::arg('c') ) as $path ){
-        $Compiler->add_script( $path );
+    foreach( explode(':', Cli::arg('c','') ) as $path ){
+        $path and $Compiler->add_script( $path );
     }
-
-    // compile source code and dependencies
-    $data = $Compiler->compile() or Cli::death('Nothing compiled');
     
-    // concatentate all source code starting with helper and sandbox
-    $src = "( function( window, document, undefined ){\n".file_get_contents( $base.'/js/common.js' );
-    foreach( $data as $d ){
-        $src .= "\n".$d['js'];
+    // add standard libraries
+    foreach( explode(':', Cli::arg('l','') ) as $path ){
+        $path and $Compiler->add_library($path);
     }
-    $src .= "\n} )( window, document );\n";
+    
+    // compile and concatenate full source code
+    $src = $Compiler->to_source();
     
     // output uncompressed source if -n flag was specified
     if( Cli::arg('n') ){
