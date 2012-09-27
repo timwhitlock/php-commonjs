@@ -263,7 +263,7 @@ abstract class Cli {
         
         $descriptorspec = array (
             1 => array('pipe', 'w'), // stdout
-            2 => array('pipe', 'w'), // stderr
+            2 => STDERR,
         );
         if( $stdin ){
             $descriptorspec[0] = array('pipe', 'r'); // stdin is a pipe that the child will read from
@@ -282,10 +282,17 @@ abstract class Cli {
             fclose($pipes[0]);
         }
         // Get response as it is piped out
-        $stderr = stream_get_contents($pipes[2]) and self::stderr($stderr);
-        fclose($pipes[2]);
-        $stdout = stream_get_contents($pipes[1]);
-        fclose($pipes[1]);
+        if( isset($pipes[2]) ){
+            $stderr = stream_get_contents($pipes[2], 1024 );// and self::stderr($stderr);
+            fclose($pipes[2]);
+        }
+        if( isset($pipes[1]) ){
+            $stdout = stream_get_contents($pipes[1]);
+            fclose($pipes[1]);
+        }
+        else {
+            $stdout = '';
+        }
         // close and return binary captured data
         $e = proc_close($process);
         if( 0 !== $e ){
